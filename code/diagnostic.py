@@ -1,4 +1,3 @@
-# diagnostic.py
 import cv2
 import numpy as np
 import os
@@ -6,18 +5,15 @@ import os
 print("ДИАГНОСТИКА ИЗОБРАЖЕНИЯ")
 print("=" * 60)
 
-# Проверяем существование файла
 image_path = "test.jpg"
 if not os.path.exists(image_path):
     print(f"Файл {image_path} не найден!")
     exit()
 
-# Загружаем изображение
 img = cv2.imread(image_path)
 if img is None:
     print(f"Не удалось загрузить {image_path} как изображение")
     
-    # Попробуем прочитать как бинарный файл
     with open(image_path, 'rb') as f:
         data = f.read()
     print(f"Размер файла: {len(data)} байт")
