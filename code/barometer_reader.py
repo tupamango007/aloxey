@@ -20,12 +20,7 @@ def draw_reference_axis(frame, center, radius, color=(0, 255, 255), thickness=1)
                 cv2.FONT_HERSHEY_SIMPLEX, 0.5, color, 1)
 
 def calibrate_gauge(image_path, output_calib_file='gauge_calib.json'):
-    """
-    Интерактивная калибровка манометра.
-    Пользователь кликает на центр, начало и конец шкалы.
-    Сохраняет параметры в JSON-файл (углы, значения, радиус).
-    Центр не сохраняется, так как будет определяться автоматически.
-    """
+
     img = cv2.imread(image_path)
     if img is None:
         print("Ошибка загрузки изображения")
@@ -109,15 +104,10 @@ def load_calibration(calib_file):
         return json.load(f)
 
 def find_gauge_center(frame, calib_data, hough_params=None):
-    """
-    Находит центр циферблата на кадре с помощью HoughCircles.
-    Возвращает (x, y) или None, если не найдено.
-    Использует радиус из калибровки для диапазона поиска.
-    """
     gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
     blur = cv2.GaussianBlur(gray, (5,5), 0)
     
-    # Улучшение контраста (опционально)
+ 
     clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8,8))
     enhanced = clahe.apply(blur)
     
@@ -127,7 +117,7 @@ def find_gauge_center(frame, calib_data, hough_params=None):
     circle_param1 = hough_params.get('circle_param1', 100)
     circle_param2 = hough_params.get('circle_param2', 20)
     radius = calib_data.get('radius', 100)
-    # Диапазон с запасом 40%
+
     min_radius = int(radius * 0.6)
     max_radius = int(radius * 1.4)
     
@@ -138,19 +128,12 @@ def find_gauge_center(frame, calib_data, hough_params=None):
                                maxRadius=max_radius)
     if circles is not None:
         circles = np.uint16(np.around(circles))
-        # Если несколько кругов, выбираем тот, чей центр наиболее вероятен? Пока берём первый.
-        # Можно добавить фильтрацию по расстоянию от ожидаемой области, но у нас нет ожидаемого центра.
-        # Поэтому просто берём первый.
+       
         return (circles[0,0,0], circles[0,0,1])
     return None
 
 def find_needle_angle(frame, calib_data, hough_params=None):
-    """
-    Находит угол стрелки на кадре.
-    Сначала определяет центр, затем ищет линии и выбирает стрелку.
-    Возвращает (angle, tip, center) или (None, None, None) если не найдено.
-    """
-    # Определяем центр
+
     center = find_gauge_center(frame, calib_data, hough_params)
     if center is None:
         return None, None, None
@@ -172,7 +155,6 @@ def find_needle_angle(frame, calib_data, hough_params=None):
     if lines is None:
         return None, None, center
     
-    # Адаптивные пороги относительно радиуса
     close_thresh = radius * 0.15
     far_thresh = radius * 0.4
     
@@ -193,7 +175,7 @@ def find_needle_angle(frame, calib_data, hough_params=None):
                 best_line = (x1, y1, x2, y2)
     
     if best_line is None:
-        # Менее строгие пороги
+        
         close_thresh = radius * 0.25
         far_thresh = radius * 0.3
         for line in lines:
@@ -225,7 +207,7 @@ def angle_to_value(angle, calib_data):
     v_min = calib_data['value_min']
     v_max = calib_data['value_max']
     
-    if a_max < a_min:  # шкала переходит через 0°
+    if a_max < a_min:  
         if angle < a_min:
             angle += 360
         if angle < a_min or angle > a_max + 360:
