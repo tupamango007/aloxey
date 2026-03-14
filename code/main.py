@@ -1,4 +1,3 @@
-# main.py (расширенная версия)
 import os
 import cv2
 from hough_gui import hough_gui_analysis
