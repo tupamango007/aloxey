@@ -7,10 +7,6 @@ from barometer_reader import compute_angle
 from hough_config import DEFAULT_HOUGH_PARAMS
 
 
-    # ... создание трекбаров ...
-    # При создании трекбаров начальные значения берутся из params
-    
-
 def hough_gui_analysis(image_path):
     """Graphical interface for tuning Hough parameters and angle analysis."""
     img = cv2.imread(image_path)
@@ -107,13 +103,13 @@ def hough_gui_analysis(image_path):
                         cx, cy, r = c
                         d1 = math.hypot(x1-cx, y1-cy)
                         d2 = math.hypot(x2-cx, y2-cy)
-                        if d1 <= r*1.1 or d2 <= r*1.1:   # small tolerance
+                        if d1 <= r*1.1 or d2 <= r*1.1:   
                             line_in_circle = True
                             lines_in_circle_count += 1
 
-                            # Определяем остриё (дальний от центра конец)
+                            
                             tip = (x1, y1) if d1 > d2 else (x2, y2)
-                            # Вычисляем угол в единой системе (0° = вниз, по часовой)
+                           
                             angle = compute_angle((cx, cy), tip)
 
                             current_angles.append({
@@ -123,7 +119,6 @@ def hough_gui_analysis(image_path):
                             })
                             break
 
-                # Color
                 if line_in_circle and params['filter_by_circle']:
                     color = (0, 0, 255)      # red
                     thickness = 3
@@ -132,7 +127,6 @@ def hough_gui_analysis(image_path):
                     thickness = 1
                 cv2.line(result, (x1, y1), (x2, y2), color, thickness)
 
-        # Save final state
         final_params = params.copy()
         final_circles = circles
         final_lines = lines
@@ -173,7 +167,6 @@ def hough_gui_analysis(image_path):
 
     cv2.destroyAllWindows()
 
-    # Print angles after closing
     print("\n" + "="*60)
     print("ANGLES OF LINES INSIDE CIRCLES (0° = down, clockwise)")
     print("="*60)
