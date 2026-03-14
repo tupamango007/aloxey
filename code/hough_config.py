@@ -8,7 +8,7 @@ DEFAULT_HOUGH_PARAMS = {
     'min_line_len': 90,
     'max_line_gap': 15,
     'circle_param1': 100,
-    'circle_param2': 56,       # более чувствительное значение для поиска кругов
+    'circle_param2': 56,      
     'min_radius': 135,
     'max_radius': 290,
     'filter_by_circle': 1
