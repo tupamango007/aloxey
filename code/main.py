@@ -56,7 +56,6 @@ def main():
                 calibrate_gauge(path, calib_file)
             else:
                 print("File not found.")
-# main.py (фрагменты с изменениями)
 
         elif choice == "5":
             calib_file = input("Calibration file (e.g., gauge_calib.json): ").strip()
@@ -71,7 +70,6 @@ def main():
                 hough_params = load_params_from_file(params_file)
                 print(f"Loaded Hough parameters: {hough_params}")
             
-            # Источник
             source = input("Use camera (0) or video file path? (Enter 0 for camera, or path to video): ").strip()
             if source == "0":
                 cap = cv2.VideoCapture(0)
@@ -94,10 +92,9 @@ def main():
                     print("End of video or cannot read frame.")
                     break
                 
-                # Используем динамический центр
                 angle, tip, current_center = find_needle_angle(frame, calib_data, hough_params, dynamic_center=True)
                 
-                # Рисуем опорную ось относительно текущего центра
+                
                 draw_reference_axis(frame, current_center, calib_data['radius'])
                 
                 if angle is not None:
@@ -128,7 +125,7 @@ def main():
             cv2.destroyAllWindows()
 
         elif choice == "6":
-            # Аналогично для изображения, но dynamic_center можно отключить, если нужно
+            
             path = input("Image path: ").strip()
             if not os.path.exists(path):
                 print("File not found.")
@@ -146,7 +143,7 @@ def main():
                 print(f"Loaded Hough parameters: {hough_params}")
             
             frame = cv2.imread(path)
-            # Для одного изображения можно также включить dynamic_center, если есть риск смещения
+           
             angle, tip, current_center = find_needle_angle(frame, calib_data, hough_params, dynamic_center=True)
             
             draw_reference_axis(frame, current_center, calib_data['radius'])
