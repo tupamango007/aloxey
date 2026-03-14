@@ -1,4 +1,3 @@
-# barometer_reader.py
 import cv2
 import numpy as np
 import math
@@ -20,11 +19,6 @@ def draw_reference_axis(frame, center, radius, color=(0, 255, 255), thickness=1)
                 cv2.FONT_HERSHEY_SIMPLEX, 0.5, color, 1)
 
 def calibrate_gauge(image_path, output_calib_file='gauge_calib.json'):
-    """
-    Интерактивная калибровка манометра.
-    Пользователь кликает на центр, начало и конец шкалы.
-    Сохраняет параметры в JSON-файл.
-    """
     img = cv2.imread(image_path)
     if img is None:
         print("Ошибка загрузки изображения")
@@ -71,7 +65,6 @@ def calibrate_gauge(image_path, output_calib_file='gauge_calib.json'):
     angle_min = compute_angle(center, p_min)
     angle_max = compute_angle(center, p_max)
     
-    # Вычисляем примерный радиус (расстояние до точки максимума)
     radius = int(math.hypot(p_max[0]-center[0], p_max[1]-center[1]))
     
     print(f"Угол для минимума: {angle_min:.1f}°")
@@ -86,7 +79,6 @@ def calibrate_gauge(image_path, output_calib_file='gauge_calib.json'):
             angle_min, angle_max = angle_max, angle_min
             print("Порядок изменён.")
     
-    # Запрашиваем числовые значения
     min_val = float(input("Введите минимальное значение на шкале (например, 0): "))
     max_val = float(input("Введите максимальное значение на шкале (например, 1.5): "))
     
@@ -111,14 +103,10 @@ def load_calibration(calib_file):
         return json.load(f)
 
 def find_gauge_center(frame, calib_data, hough_params=None):
-    """
-    Находит центр циферблата на кадре с помощью HoughCircles.
-    Возвращает (x, y) или None, если не найдено.
-    """
+
     gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
     blur = cv2.GaussianBlur(gray, (5,5), 0)
     
-    # Параметры для поиска кругов (можно использовать из hough_params или по умолчанию)
     if hough_params is None:
         circles = cv2.HoughCircles(blur, cv2.HOUGH_GRADIENT, dp=1, minDist=50,
                                    param1=100, param2=20,
@@ -132,19 +120,12 @@ def find_gauge_center(frame, calib_data, hough_params=None):
                                    maxRadius=int(calib_data['radius']*1.2))
     if circles is not None:
         circles = np.uint16(np.around(circles))
-        # Выбираем круг, ближайший к сохранённому центру (на случай множественных детекций)
         best = min(circles[0, :], key=lambda c: math.hypot(c[0]-calib_data['center'][0], c[1]-calib_data['center'][1]))
         return (best[0], best[1])
     return None
 
 def find_needle_angle(frame, calib_data, hough_params=None, dynamic_center=True):
-    """
-    Находит угол стрелки на кадре.
-    Если dynamic_center=True, сначала пытается найти центр циферблата на кадре,
-    иначе использует фиксированный центр из калибровки.
-    Возвращает (angle, tip, used_center).
-    """
-    # Определяем центр
+
     if dynamic_center:
         center = find_gauge_center(frame, calib_data, hough_params)
         if center is None:
@@ -157,7 +138,6 @@ def find_needle_angle(frame, calib_data, hough_params=None, dynamic_center=True)
     gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
     blur = cv2.GaussianBlur(gray, (5,5), 0)
     
-    # Используем Canny с параметрами
     if hough_params is None:
         edges = cv2.Canny(blur, 50, 150)
         lines = cv2.HoughLinesP(edges, 1, np.pi/180, 50, minLineLength=30, maxLineGap=10)
@@ -171,7 +151,6 @@ def find_needle_angle(frame, calib_data, hough_params=None, dynamic_center=True)
     if lines is None:
         return None, None, center
     
-    # Адаптивные пороги относительно радиуса
     close_thresh = radius * 0.15
     far_thresh = radius * 0.4
     
@@ -192,7 +171,6 @@ def find_needle_angle(frame, calib_data, hough_params=None, dynamic_center=True)
                 best_line = (x1, y1, x2, y2)
     
     if best_line is None:
-        # Менее строгие пороги
         close_thresh = radius * 0.25
         far_thresh = radius * 0.3
         for line in lines:
