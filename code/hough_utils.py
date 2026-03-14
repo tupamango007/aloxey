@@ -6,7 +6,6 @@ from barometer_reader import compute_angle
 from hough_config import DEFAULT_HOUGH_PARAMS
 
 def load_params_from_file(params_file):
-    """Load parameters from a text file with key=value lines. Returns a dict with int values."""
     params = {}
     with open(params_file, 'r') as f:
         for line in f:
@@ -26,7 +25,6 @@ def quick_analysis(image_path, params=None):
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
     blur = cv2.GaussianBlur(gray, (5,5), 0)
 
-    # Default parameters (must match GUI defaults)
     if params is None:
         p = DEFAULT_HOUGH_PARAMS.copy()
     else:
@@ -39,20 +37,17 @@ def quick_analysis(image_path, params=None):
                 DEFAULT_HOUGH_PARAMS[k] = params[k]
     p = DEFAULT_HOUGH_PARAMS
 
-    # Lines
     edges = cv2.Canny(blur, p['canny1'], p['canny2'])
     lines = cv2.HoughLinesP(edges, 1, np.pi/180, p['hough_thresh'],
                             minLineLength=p['min_line_len'],
                             maxLineGap=p['max_line_gap'])
 
-    # Circles
     circles = cv2.HoughCircles(blur, cv2.HOUGH_GRADIENT, 1, 50,
                                param1=p['circle_param1'],
                                param2=p['circle_param2'],
                                minRadius=p['min_radius'],
                                maxRadius=p['max_radius'])
 
-    # Draw results
     result = img.copy()
     circles_int = None
     if circles is not None:
@@ -81,7 +76,7 @@ def quick_analysis(image_path, params=None):
                         angle = compute_angle((cx, cy), tip)
                         angle_info.append({'center': (cx,cy), 'radius': r, 'angle': round(angle,1)})
                         break
-            # color
+
             if in_circle and p.get('filter_by_circle', 1):
                 color = (0, 0, 255)
                 thickness = 3
@@ -96,7 +91,6 @@ def quick_analysis(image_path, params=None):
     cv2.waitKey(0)
     cv2.destroyAllWindows()
 
-    # Output angles
     print("\n" + "="*50)
     print("ANGLES OF LINES IN CIRCLES (0° = down, clockwise)")
     print("="*50)
